@@ -56,42 +56,51 @@
     }
     .bm-panel[data-placement="below"][data-collapsed="1"] .bm-menu { transform: translateY(-6px) scale(.98); }
     .bm-head {
-      display: flex; align-items: center; gap: 8px; padding: 8px 10px;
-      min-height: 42px; flex: 0 0 auto; background: #23252f;
-      cursor: move; border-bottom: 1px solid #34363f;
+      display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+      min-height: 58px; flex: 0 0 auto; cursor: move;
+      background: linear-gradient(135deg, #242938, #1c1e26 78%);
+      border-bottom: 1px solid #343746;
     }
-    .bm-title { font-weight: 600; font-size: 13px; flex: 1; }
-    .bm-icon { all: unset; cursor: pointer; padding: 0 6px; border-radius: 6px; font-size: 14px; color: #b9bcc7; }
-    .bm-icon:hover { background: #34363f; color: #fff; }
-    .bm-body { min-height: 0; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow: auto; overscroll-behavior: contain; }
-    .bm-status { color: #c9ccd6; min-height: 2.2em; }
-    .bm-actions { display: flex; gap: 6px; }
+    .bm-heading { flex: 1; min-width: 0; }
+    .bm-title { display: block; font-weight: 700; letter-spacing: .01em; font-size: 14px; }
+    .bm-subtitle { display: block; margin-top: 2px; color: #989fb0; font-size: 11px; }
+    .bm-icon { all: unset; cursor: pointer; display:grid; place-items:center; width:30px; height:30px; border-radius:9px; font-size:14px; color:#b9bcc7; background:rgba(255,255,255,.045); }
+    .bm-icon:hover { background: rgba(255,255,255,.11); color: #fff; }
+    .bm-body { min-height: 0; padding: 12px; display: flex; flex-direction: column; gap: 11px; overflow: auto; overscroll-behavior: contain; background: #191b22; }
+    .bm-status { color: #cbd1df; min-height: 2.2em; padding: 9px 10px; border: 1px solid #303442; border-radius: 10px; background: #20232d; }
+    .bm-actions { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 7px; }
     .bm-btn {
-      all: unset; min-width: 0; cursor: pointer; text-align: center; padding: 7px 10px; border-radius: 8px;
-      background: #3a3d4a; color: #f2f3f7; font-size: 13px; flex: 1;
+      all: unset; min-width: 0; cursor: pointer; text-align: center; padding: 8px 10px; border-radius: 9px;
+      background: #303441; color: #eef0f6; font-size: 12px; font-weight: 600; transition: background .15s ease, transform .15s ease;
     }
-    .bm-btn:hover { background: #464a5a; }
+    .bm-btn:hover { background: #3b4050; }
+    .bm-btn:active { transform: translateY(1px); }
     .bm-btn[disabled] { opacity: .45; cursor: default; }
-    .bm-primary { background: #c0392b; font-weight: 600; }
-    .bm-primary:hover { background: #d04434; }
-    .bm-danger { background: #4a3a3a; }
-    .bm-small { flex: none; font-size: 12px; padding: 5px 8px; }
-    .bm-settings { border-top: 1px solid #34363f; padding-top: 8px; }
-    .bm-settings summary { cursor: pointer; color: #b9bcc7; }
-    .bm-field { display: block; margin-top: 8px; color: #c9ccd6; }
+    .bm-primary { background: linear-gradient(135deg, #e5484d, #bf3039); color:#fff; }
+    .bm-primary:hover { background: linear-gradient(135deg, #f25459, #d33b44); }
+    .bm-danger { background: #412a30; color: #ffb4b8; }
+    .bm-small { flex: none; font-size: 11px; padding: 7px 9px; }
+    .bm-settings { border: 1px solid #303442; border-radius: 10px; padding: 0 10px; background: #1e2029; }
+    .bm-settings summary { cursor: pointer; display:flex; align-items:center; gap:8px; min-height:38px; color:#e1e4ec; font-weight:600; list-style:none; }
+    .bm-settings summary::-webkit-details-marker { display:none; }
+    .bm-settings summary::after { content:'⌄'; margin-left:auto; color:#8d94a6; transition:transform .15s ease; }
+    .bm-settings[open] summary::after { transform:rotate(180deg); }
+    .bm-settings[open] summary { border-bottom: 1px solid #303442; margin-bottom: 8px; }
+    .bm-field { display: block; margin: 8px 0 10px; color: #cbd1df; font-size:12px; }
     .bm-field input, .bm-field select {
       all: unset; display: block; width: 100%; margin-top: 4px; padding: 5px 7px;
-      background: #15161c; border: 1px solid #3a3d4a; border-radius: 6px; color: #f2f3f7;
+      background: #15171e; border: 1px solid #383c4a; border-radius: 8px; color: #f2f3f7;
     }
+    .bm-field input:focus, .bm-field select:focus { border-color:#7d8db7; box-shadow:0 0 0 2px rgba(125,141,183,.18); }
     .bm-field select { cursor: pointer; }
     .bm-range { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
     .bm-range input { flex: 1; min-width: 0; margin-top: 0; }
-    .bm-check { display: flex; gap: 7px; align-items: flex-start; margin-top: 8px; color: #c9ccd6; cursor: pointer; }
-    .bm-check input { all: revert; margin-top: 2px; }
-    .bm-stats { color: #9fa3b0; font-variant-numeric: tabular-nums; }
+    .bm-check { display: flex; gap: 8px; align-items: flex-start; margin: 9px 0; color: #cbd1df; cursor: pointer; font-size:12px; }
+    .bm-check input { all: revert; margin: 2px 0 0; accent-color:#ee555c; }
+    .bm-stats { color: #9fa8bb; font-variant-numeric: tabular-nums; font-size:11px; }
     .bm-log {
-      max-height: 160px; overflow: auto; background: #15161c; border: 1px solid #2c2e37;
-      border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 3px;
+      max-height: 145px; overflow: auto; background: #15171e; border: 1px solid #2c303c;
+      border-radius: 8px; padding: 7px; display: flex; flex-direction: column; gap: 4px;
       user-select: text;
     }
     .bm-log:empty::before { content: "лог пуст"; color: #6d7180; }
@@ -103,13 +112,17 @@
     .bm-failed .m { color: #ef7b6d; }
     .bm-known .m, .bm-skipped .m, .bm-debug .m { color: #7c8090; }
     .bm-info .m { color: #9fc4ef; }
-    .bm-foot { display: flex; gap: 6px; }
-    .bm-tabinfo { color: #9fc4ef; margin: 6px 0 2px; }
+    .bm-foot { display: flex; gap: 6px; flex-wrap:wrap; margin: 8px 0; }
+    .bm-tabinfo { color: #9fc4ef; margin: 6px 0 2px; font-size:11px; }
     .bm-names {
       margin: 4px 0 0; padding-left: 18px; max-height: 160px; overflow: auto;
       color: #c9ccd6; user-select: text;
     }
-    .bm-hint { color: #8b8f9c; font-size: 12px; margin-top: 8px; }
+    .bm-hint { color: #858da0; font-size: 11px; line-height:1.45; margin: 6px 0 9px; }
+    .bm-section-title { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#aeb5c5; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
+    .bm-history { padding: 9px 10px; border:1px solid #34313b; border-radius:9px; background:#211e25; color:#e6c7ca; }
+    .bm-history:hover { background:#30242a; }
+    @media (max-width: 380px) { .bm-menu { width: calc(100vw - 24px); } .bm-actions { grid-template-columns:minmax(0,1fr) auto; } .bm-actions [data-role="stop"] { grid-column:2; grid-row:1; } }
   `;
 
   const TEMPLATE = `
@@ -120,64 +133,56 @@
       </button>
       <div class="bm-menu" data-role="menu">
       <div class="bm-head" data-role="head">
-        <span class="bm-title">🚫 Блокировщик мразей</span>
+        <div class="bm-heading"><span class="bm-title">Блокировщик</span><span class="bm-subtitle">Управление списком Facebook</span></div>
         <button class="bm-icon" data-role="close" title="Свернуть меню" aria-label="Свернуть меню">✕</button>
       </div>
       <div class="bm-body">
         <div class="bm-status" data-role="status">Нажмите «↻», когда откроете окно реакций.</div>
         <div class="bm-actions">
-          <button class="bm-btn bm-primary" data-role="run">Блокировать всех</button>
+          <button class="bm-btn bm-primary" data-role="run">Начать блокировку</button>
           <button class="bm-btn bm-danger" data-role="stop" disabled>Стоп</button>
-          <button class="bm-btn bm-small" data-role="rescan" title="Проверить/обновить список (сканирование вручную)">↻</button>
+          <button class="bm-btn bm-small" data-role="rescan" title="Вручную обновить список">Обновить</button>
         </div>
         <details class="bm-settings">
-          <summary>Настройки</summary>
-          <label class="bm-field">Пауза между людьми, мс
-            <span class="bm-range">
-              <input type="number" data-role="delayMin" min="100" step="100">
-              <span>–</span>
-              <input type="number" data-role="delayMax" min="100" step="100">
-            </span>
-          </label>
+          <summary>Параметры обработки</summary>
           <label class="bm-field">Лимит за прогон (0 — без лимита)
             <input type="number" data-role="limit" min="0" step="1">
           </label>
-          <label class="bm-field">Каждые N человек — длинная пауза, мс
-            <span class="bm-range">
-              <input type="number" data-role="pauseEvery" min="0" step="1">
-              <input type="number" data-role="pauseFor" min="0" step="1000">
-            </span>
-          </label>
-          <label class="bm-check"><input type="checkbox" data-role="dryRun"> <span>Тестовый прогон: доходить до «Подтвердить», но не нажимать</span></label>
-          <label class="bm-check"><input type="checkbox" data-role="skipKnown"> <span>Пропускать тех, кого уже блокировали (по истории расширения)</span></label>
-          <label class="bm-check"><input type="checkbox" data-role="rowButtons"> <span>Кнопка «🚫» в каждой строке списка</span></label>
-          <label class="bm-check"><input type="checkbox" data-role="verbose"> <span>Подробный лог (диагностика)</span></label>
+          <label class="bm-check"><input type="checkbox" data-role="skipKnown"> <span>Пропускать аккаунты из локальной истории блокировок</span></label>
+          <label class="bm-check"><input type="checkbox" data-role="rowButtons"> <span>Показывать кнопку блокировки в каждой строке</span></label>
           <label class="bm-field">Режим блокировки
             <select data-role="strategy">
-              <option value="list">В открытом списке — быстро (по очереди; кого нельзя из строки — параллельно вкладками)</option>
-              <option value="tabs">Через вкладки профилей — параллельно, до 100 сразу</option>
+              <option value="list">В открытом списке</option>
+              <option value="tabs">Через вкладки профилей (параллельно)</option>
             </select>
           </label>
-          <label class="bm-check"><input type="checkbox" data-role="tabsActive"> <span>В режиме вкладок активировать вкладку профиля (переключает фокус)</span></label>
           <label class="bm-field">Вкладок одновременно (режим вкладок, максимум 100)
             <input type="number" data-role="maxTabs" min="1" max="100" step="1">
           </label>
-          <label class="bm-check"><input type="checkbox" data-role="noScroll"> <span>Блокировать только то, что видно в списке (без автопрокрутки)</span></label>
-          <div class="bm-hint">Пауза 2–6 секунд выглядит для Facebook как обычные действия человека. Слишком быстрый массовый прогон может привести к временной блокировке действий.</div>
+          <label class="bm-check"><input type="checkbox" data-role="noScroll"> <span>Обрабатывать только уже загруженные строки</span></label>
+          <div class="bm-hint">Если отключить этот параметр, список будет прокручиваться для загрузки следующих аккаунтов.</div>
         </details>
         <details class="bm-settings" data-role="namesBox">
-          <summary>Список к блокировке: <b data-role="namesCount">0</b></summary>
+          <summary>Найденные аккаунты <b data-role="namesCount">0</b></summary>
           <div class="bm-tabinfo" data-role="tabInfo"></div>
           <ol class="bm-names" data-role="names"></ol>
-          <div class="bm-hint">Это строки, которые сейчас загружены в окне реакций, в порядке отображения. Прокрутили список или сменили вкладку — нажмите «↻».</div>
+          <div class="bm-hint">Проверьте список перед запуском. После прокрутки или смены вкладки нажмите «Обновить».</div>
         </details>
         <div class="bm-stats" data-role="stats"></div>
-        <div class="bm-log" data-role="log"></div>
-        <div class="bm-foot">
-          <button class="bm-btn bm-small" data-role="copy">Копировать лог</button>
-          <button class="bm-btn bm-small" data-role="clear">Очистить лог</button>
-          <button class="bm-btn bm-small" data-role="reset" title="Забыть, кого уже блокировали">Сбросить историю</button>
-        </div>
+        <details class="bm-settings" data-role="logDetails" open>
+          <summary>Журнал работы</summary>
+          <div class="bm-foot">
+            <button class="bm-btn bm-small" data-role="copy">Скопировать журнал</button>
+            <button class="bm-btn bm-small" data-role="clear">Очистить журнал</button>
+          </div>
+          <div class="bm-log" data-role="log"></div>
+          <div class="bm-hint">Очистка журнала удаляет только сообщения на этой странице и не меняет список уже заблокированных.</div>
+        </details>
+        <details class="bm-settings">
+          <summary>История и данные</summary>
+          <button class="bm-btn bm-history" data-role="reset" title="Очистить локальные отметки о ранее заблокированных аккаунтах">Сбросить историю блокировок</button>
+          <div class="bm-hint">Это позволит обработать аккаунты повторно. Люди не будут разблокированы в Facebook.</div>
+        </details>
       </div>
       </div>
     </div>
@@ -194,17 +199,10 @@
   let dragState = null;
 
   const FORM_KEYS = [
-    'delayMin',
-    'delayMax',
     'limit',
-    'pauseEvery',
-    'pauseFor',
-    'dryRun',
     'skipKnown',
     'rowButtons',
-    'verbose',
     'strategy',
-    'tabsActive',
     'maxTabs',
     'noScroll',
   ];
@@ -262,6 +260,7 @@
     els.copy.addEventListener('click', copyLog);
     els.clear.addEventListener('click', () => logClear());
     els.reset.addEventListener('click', async () => {
+      if (!window.confirm('Очистить локальную историю блокировок? Это позволит расширению обрабатывать эти аккаунты повторно, но не разблокирует их в Facebook.')) return;
       await U.historyClear();
       if (ctx) ctx.knownBlocked.clear();
       pushLog({ status: 'info', message: 'история блокировок сброшена' });
@@ -283,19 +282,17 @@
 
   function readForm() {
     return {
-      delayMin: U.clampNumber(els.delayMin.value, U.DEFAULT_SETTINGS.delayMin, 100, 600000),
-      delayMax: U.clampNumber(els.delayMax.value, U.DEFAULT_SETTINGS.delayMax, 100, 600000),
       limit: U.clampNumber(els.limit.value, 0, 0, 100000),
-      pauseEvery: U.clampNumber(els.pauseEvery.value, 0, 0, 10000),
-      pauseFor: U.clampNumber(els.pauseFor.value, 0, 0, 3600000),
-      dryRun: !!els.dryRun.checked,
       skipKnown: !!els.skipKnown.checked,
       rowButtons: !!els.rowButtons.checked,
-      verbose: !!els.verbose.checked,
       strategy: els.strategy.value === 'tabs' ? 'tabs' : 'list',
-      tabsActive: !!els.tabsActive.checked,
       maxTabs: U.clampNumber(els.maxTabs.value, U.DEFAULT_SETTINGS.maxTabs, 1, 100),
       noScroll: !!els.noScroll.checked,
+      dryRun: false,
+      pauseEvery: 0,
+      pauseFor: 0,
+      tabsActive: false,
+      verbose: true,
     };
   }
 
@@ -304,19 +301,12 @@
   }
 
   function applySettingsToForm() {
-    if (!els.delayMin) return;
+    if (!els.limit) return;
     const s = Object.assign({}, U.DEFAULT_SETTINGS, U.settings.cache);
-    els.delayMin.value = s.delayMin;
-    els.delayMax.value = s.delayMax;
     els.limit.value = s.limit;
-    els.pauseEvery.value = s.pauseEvery;
-    els.pauseFor.value = s.pauseFor;
-    els.dryRun.checked = !!s.dryRun;
     els.skipKnown.checked = !!s.skipKnown;
     els.rowButtons.checked = !!s.rowButtons;
-    els.verbose.checked = !!s.verbose;
     els.strategy.value = s.strategy === 'tabs' ? 'tabs' : 'list';
-    els.tabsActive.checked = !!s.tabsActive;
     els.maxTabs.value = s.maxTabs;
     els.noScroll.checked = !!s.noScroll;
   }
@@ -333,7 +323,7 @@
     const stats = (context || ctx || { stats: null }).stats;
     if (!stats) return;
     els.stats.textContent =
-      `Заблокировано: ${stats.ok} · тест: ${stats.dry} · ошибок: ${stats.failed} · уже было: ${stats.known}`;
+      `Заблокировано: ${stats.ok} · пропущено ранее: ${stats.known} · ошибок: ${stats.failed}`;
   }
 
   function summaryText(context) {
@@ -546,11 +536,10 @@
 
   function onEvent(event) {
     if (!event) return;
-    const verbose = !!(U.settings.cache && U.settings.cache.verbose);
 
     if (event.type === 'result') {
       pushLog({ status: event.status, name: event.name || event.key, message: event.message });
-    } else if (event.message && (event.type !== 'debug' || verbose)) {
+    } else if (event.message) {
       pushLog({ status: EVENT_STATUS[event.type] || 'info', message: event.message });
     }
 
@@ -630,11 +619,10 @@
 
     running = true;
     toggleRunning(true);
-    logClear();
     scan();
     pushLog({
       status: 'info',
-      message: settings.dryRun ? 'Старт (тестовый прогон — реальных блокировок не будет)' : 'Старт прогона',
+      message: 'начат прогон блокировки',
     });
 
     try {

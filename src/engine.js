@@ -450,14 +450,10 @@
           break;
         }
 
-        await ctx.sleep(U.jitter(ctx.settings.delayMin, ctx.settings.delayMax));
+        // В последовательном режиме сохраняем фиксированную короткую паузу;
+        // параллельный режим профилей обрабатывает вкладки пачками без неё.
+        await ctx.sleep(U.jitter(2500, 6000));
         if (ctx.stopped) break;
-
-        const every = Number(ctx.settings.pauseEvery) || 0;
-        if (every > 0 && ctx.stats.processed > 0 && ctx.stats.processed % every === 0) {
-          ctx.info(`длинная пауза ${ctx.settings.pauseFor} мс после ${ctx.stats.processed} обработок`);
-          await ctx.sleep(Number(ctx.settings.pauseFor) || 0);
-        }
       }
 
       // Проход по загруженным строкам закончен: «отложенных» (у кого в строке
@@ -493,7 +489,7 @@
   async function blockViaTab(target, ctx, api, waitTimeout = DEFAULT_TAB_WAIT_MS) {
     let tabId = null;
     try {
-      const opened = await api.openTab(buildProfileUrl(target.key), !!ctx.settings.tabsActive);
+      const opened = await api.openTab(buildProfileUrl(target.key), false);
       if (!opened || !opened.tabId) {
         throw new Error((opened && opened.error) || 'не удалось открыть вкладку профиля');
       }

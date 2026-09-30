@@ -21,20 +21,15 @@
     panelPos: 'bm_panel_pos',
   };
 
-  /** Настройки по умолчанию. dryRun: true — первый прогон безопасный. */
+  /** Настройки по умолчанию. */
   const DEFAULT_SETTINGS = {
-    delayMin: 2500, // пауза между пользователями, мс
-    delayMax: 6000,
+    settingsVersion: 2,
     limit: 0, // 0 — без лимита за прогон
-    pauseEvery: 20, // каждые N блокировок — длинная пауза
-    pauseFor: 20000,
-    dryRun: true, // не нажимать «Подтвердить», только проверять
     skipKnown: true, // пропускать тех, кто уже есть в истории блокировок
-    verbose: false, // подробный лог (диагностика селекторов)
+    verbose: true, // журнал событий включён постоянно
     strategy: 'list', // 'list' — прямо в списке; 'tabs' — через вкладки профилей
     noScroll: true, // обрабатывать только загруженные сейчас строки (без автопрокрутки)
     rowButtons: false, // показывать кнопку «🚫» в каждой строке списка
-    tabsActive: false, // делать вкладку профиля активной (надёжнее, но переключает фокус)
     maxTabs: 100, // сколько профилей открывать одновременно (пачкой) в режиме вкладок
     tabWaitMs: 120000, // сколько ждать ответа от служебной вкладки профиля
   };
@@ -439,6 +434,18 @@
     async load() {
       const stored = await storageGet(KEYS.settings, {});
       this.cache = Object.assign({}, DEFAULT_SETTINGS, stored && typeof stored === 'object' ? stored : {});
+      const storedVersion = stored && Number(stored.settingsVersion);
+      if (!Number.isFinite(storedVersion) || storedVersion < DEFAULT_SETTINGS.settingsVersion) {
+        // Новая панель работает без тестового режима, пропускает уже известные
+        // блокировки по умолчанию и сохраняет только актуальные параметры.
+        this.cache.skipKnown = true;
+        this.cache.dryRun = false;
+        this.cache.pauseEvery = 0;
+        this.cache.pauseFor = 0;
+        this.cache.tabsActive = false;
+        this.cache.verbose = true;
+        await storageSet(KEYS.settings, this.cache);
+      }
       return this.cache;
     },
 
