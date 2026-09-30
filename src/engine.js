@@ -202,8 +202,7 @@
 
   /**
    * Режим «список»: блокируем пользователя из его строки в открытом окне.
-   * Перебираем кандидатов-триггеров «…», пока не откроется меню
-   * с пунктом «Заблокировать»; каждый неудачный клик закрываем через Escape.
+   * Выбираем один наиболее вероятный триггер «…» и открываем только его меню.
    */
   async function blockUserInList(target, ctx) {
     if (!target || !target.row || !target.row.isConnected) {
@@ -222,30 +221,27 @@
       };
     }
 
-    for (const trigger of triggers) {
-      if (ctx.stopped) return { status: STATUS.STOPPED, message: 'остановлено пользователем' };
-      ctx.debug(`клик по триггеру: ${U.describeEl(trigger)}`);
+    if (ctx.stopped) return { status: STATUS.STOPPED, message: 'остановлено пользователем' };
+    const trigger = triggers[0];
+    ctx.debug(`клик по триггеру: ${U.describeEl(trigger)}`);
+    await Fb.closeOpenMenus();
+    U.realClick(trigger);
+
+    const item = await U.waitFor(() => Fb.findBlockMenuItem(), { timeout: 2500, interval: 100 });
+    if (!item) {
       await Fb.closeOpenMenus();
-      U.realClick(trigger);
-
-      const item = await U.waitFor(() => Fb.findBlockMenuItem(), { timeout: 2500, interval: 100 });
-      if (!item) {
-        await Fb.closeOpenMenus();
-        continue;
-      }
-
-      ctx.debug('меню открылось, клик по пункту «Заблокировать»');
-      U.realClick(item);
-
-      const dialog = await U.waitFor(() => Fb.findBlockConfirmDialog(), { timeout: 7000, interval: 120 });
-      if (!dialog) {
-        await Fb.closeOpenMenus();
-        return { status: STATUS.FAILED, message: 'окно «Заблокировать …?» не появилось' };
-      }
-      return confirmBlockDialog(dialog, target.name, ctx);
+      return { status: STATUS.FAILED, message: 'меню выбранной кнопки «…» не содержит пункт «Заблокировать»' };
     }
 
-    return { status: STATUS.FAILED, message: 'меню с пунктом «Заблокировать» не открылось' };
+    ctx.debug('меню открылось, клик по пункту «Заблокировать»');
+    U.realClick(item);
+
+    const dialog = await U.waitFor(() => Fb.findBlockConfirmDialog(), { timeout: 7000, interval: 120 });
+    if (!dialog) {
+      await Fb.closeOpenMenus();
+      return { status: STATUS.FAILED, message: 'окно «Заблокировать …?» не появилось' };
+    }
+    return confirmBlockDialog(dialog, target.name, ctx);
   }
 
   /**
@@ -295,30 +291,26 @@
       };
     }
 
-    for (const t of triggers) {
-      if (ctx.stopped) return { status: STATUS.STOPPED, message: 'остановлено пользователем' };
-      ctx.debug(`клик по триггеру профиля: ${U.describeEl(t)}`);
+    if (ctx.stopped) return { status: STATUS.STOPPED, message: 'остановлено пользователем' };
+    const trigger = triggers[0];
+    ctx.debug(`клик по триггеру профиля: ${U.describeEl(trigger)}`);
+    await Fb.closeOpenMenus();
+    U.realClick(trigger);
+
+    const expectedName = opts.expectedName || Fb.profileNameFromPage();
+    const item = await U.waitFor(() => Fb.findBlockMenuItem(), { timeout: 2500, interval: 100 });
+    if (!item) {
       await Fb.closeOpenMenus();
-      U.realClick(t);
-
-      const expectedName = opts.expectedName || Fb.profileNameFromPage();
-
-      const item = await U.waitFor(() => Fb.findBlockMenuItem(), { timeout: 2500, interval: 100 });
-      if (!item) {
-        await Fb.closeOpenMenus();
-        continue;
-      }
-      U.realClick(item);
-
-      const dialog = await U.waitFor(() => Fb.findBlockConfirmDialog(), { timeout: 7000, interval: 120 });
-      if (!dialog) {
-        await Fb.closeOpenMenus();
-        continue;
-      }
-      return confirmBlockDialog(dialog, expectedName, ctx);
+      return { status: STATUS.FAILED, message: 'меню выбранной кнопки профиля не содержит пункт «Заблокировать»' };
     }
+    U.realClick(item);
 
-    return { status: STATUS.FAILED, message: 'меню с пунктом «Заблокировать» не открылось' };
+    const dialog = await U.waitFor(() => Fb.findBlockConfirmDialog(), { timeout: 7000, interval: 120 });
+    if (!dialog) {
+      await Fb.closeOpenMenus();
+      return { status: STATUS.FAILED, message: 'окно «Заблокировать …?» не появилось' };
+    }
+    return confirmBlockDialog(dialog, expectedName, ctx);
   }
 
   /** Догружаем список: прокручиваем вниз и ждём новых строк. true — появились новые. */

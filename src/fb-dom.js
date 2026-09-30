@@ -404,6 +404,12 @@
     return !!el.querySelector('i[data-visualcompletion="css-img"], svg, img, [style*="background-image"]');
   }
 
+  function hasMenuTriggerLabel(value) {
+    const label = U.norm(value);
+    return /^(?:еще|more|more options|options|actions|действия|дополнительно|параметры|меню)(?:$|[, :])/i.test(label) ||
+      /^(?:настройки профиля|параметры профиля|profile settings)(?:$|[, :])/i.test(label);
+  }
+
   /**
    * Кандидаты-триггеры внутри строки списка, отсортированные по «похожести
    * на кнопку …»: сначала aria-haspopup и подписи вроде «Ещё»/«Действия»,
@@ -414,16 +420,22 @@
     if (!row) return [];
     const rowRect = typeof row.getBoundingClientRect === 'function' ? row.getBoundingClientRect() : null;
     const all = row.querySelectorAll('[role="button"], [aria-haspopup], button');
-    const scored = [];
+    const explicit = [];
+    const iconFallback = [];
     for (const el of all) {
       if (target && el === target.link) continue;
       if (isOurNode(el)) continue;
       if (el.closest('a[href]')) continue;
       if (el.closest('[role="menu"]')) continue;
       if (!U.isVisible(el)) continue;
+      if (el.disabled || el.getAttribute('aria-disabled') === 'true') continue;
 
       const name = U.nameOf(el);
       if (name && U.RE.badTrigger.test(name)) continue;
+      const aria = el.getAttribute('aria-label') || '';
+      const title = el.getAttribute('title') || '';
+      const hasPopup = /^(true|menu)$/i.test(el.getAttribute('aria-haspopup') || '');
+      const menuLabel = [aria, title, name].some(hasMenuTriggerLabel);
 
       const rect = typeof el.getBoundingClientRect === 'function' ? el.getBoundingClientRect() : null;
       if (rowRect && rect && rowRect.height > 0) {
@@ -432,17 +444,21 @@
         if (rect.left < rowRect.left - 12 || rect.right > rowRect.right + 12) continue;
       }
 
-      let score = 0;
-      if (el.hasAttribute('aria-haspopup')) score += 4;
-      if (name && U.RE.goodTrigger.test(name)) score += 6;
-      if (!name) score += 2;
-      if (looksLikeIconButton(el)) score += 1;
-      if ((el.getAttribute('role') || '') === 'button') score += 1;
-
-      scored.push({ el, score });
+      const rightAligned = rowRect && rect ? rect.right >= rowRect.left + rowRect.width * 0.65 : false;
+      if (hasPopup && (menuLabel || (!name && rightAligned))) {
+        // aria-haspopup называет именно popup-кнопки; явная подпись «Ещё» —
+        // лучший сигнал для меню действий Facebook.
+        explicit.push({ el, score: (menuLabel ? 20 : 10) + (rightAligned ? 3 : 0) });
+      } else if (!name && looksLikeIconButton(el)) {
+        // Осторожный резерв только для безымянной иконки справа в строке.
+        const rightAligned = rowRect && rect ? rect.right >= rowRect.left + rowRect.width * 0.72 : false;
+        if (rightAligned) iconFallback.push({ el, score: rect ? rect.right : 0 });
+      }
     }
-    scored.sort((a, b) => b.score - a.score);
-    return scored.map((s) => s.el);
+    explicit.sort((a, b) => b.score - a.score);
+    if (explicit.length) return [explicit[0].el];
+    iconFallback.sort((a, b) => b.score - a.score);
+    return iconFallback.length ? [iconFallback[0].el] : [];
   }
 
   /**
@@ -450,9 +466,9 @@
    * Профильная кнопка «Ещё» обычно безымянная иконочная или с aria-haspopup.
    */
   function profileTriggers() {
-    const all = document.querySelectorAll('[role="button"], [aria-haspopup], button, div[aria-label]');
+    const controls = document.querySelectorAll('[role="button"], [aria-haspopup], button, div[aria-label]');
     const scored = [];
-    for (const el of all) {
+    for (const el of controls) {
       if (isOurNode(el)) continue;
       if (el.closest('a[href]')) continue;
       if (el.closest('[role="menu"]')) continue;
@@ -465,26 +481,26 @@
       // Явная кнопка «Настройки профиля» — проверяем aria-label и title (новый UI FB)
       const ariaLabel = (el.getAttribute && el.getAttribute('aria-label')) || '';
       const title = (el.getAttribute && el.getAttribute('title')) || '';
-      const labelText = (ariaLabel + ' ' + title).toLowerCase();
-      if (labelText.includes('настройки') || labelText.includes('settings') ||
-          labelText.includes('профиля') || labelText.includes('меню') ||
-          labelText.includes('дополнительные') || labelText.includes('options')) {
+      const labelText = U.norm(`${ariaLabel} ${title} ${name}`);
+      if (/(настройки профиля|параметры профиля|profile settings|additional options)/i.test(labelText)) {
         scored.push({ el, score: 100 });
         continue;
       }
 
-      let score = 0;
-      if (name && U.RE.goodTrigger.test(name)) score += 6;
-      if (el.hasAttribute('aria-haspopup')) score += 4;
-      if (!name) score += 1;
+      const hasPopup = /^(true|menu)$/i.test(el.getAttribute('aria-haspopup') || '');
+      const menuLabel = [ariaLabel, title, name].some(hasMenuTriggerLabel);
+      if (!hasPopup || (name && !menuLabel)) continue;
+
+      let score = name ? 20 : 10;
+      if (menuLabel) score += 10;
       if (looksLikeIconButton(el)) score += 1;
       const rect = typeof el.getBoundingClientRect === 'function' ? el.getBoundingClientRect() : null;
       if (rect && rect.top < 900) score += 2; // шапка профиля — сверху
 
-      if (score >= 4) scored.push({ el, score });
+      scored.push({ el, score });
     }
     scored.sort((a, b) => b.score - a.score);
-    return scored.slice(0, 8).map((s) => s.el);
+    return scored.length ? [scored[0].el] : [];
   }
 
   /** Пробуждаем ленивую шапку профиля: FB может отрисовать «…» только при наведении. */
