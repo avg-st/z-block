@@ -22,28 +22,52 @@
     * { box-sizing: border-box; font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
     .bm-panel {
       position: fixed; right: 16px; bottom: 16px; z-index: 2147483000;
-      width: 320px; max-width: calc(100vw - 24px); color: #e9eaf0;
-      background: #1c1e26; border: 1px solid #34363f; border-radius: 12px;
-      box-shadow: 0 8px 28px rgba(0,0,0,.45); font-size: 13px; line-height: 1.35;
-      overflow: hidden; user-select: none;
+      width: 54px; height: 54px; color: #e9eaf0;
+      font-size: 13px; line-height: 1.35; user-select: none;
     }
+    .bm-launch {
+      all: unset; position: absolute; inset: 0; display: flex; align-items: center;
+      justify-content: center; border: 1px solid #474b5b; border-radius: 18px;
+      color: #fff; background: #252936; box-shadow: 0 8px 28px rgba(0,0,0,.42);
+      cursor: pointer; font-size: 24px; transition: transform .16s ease, background .16s ease;
+    }
+    .bm-launch:hover { background: #34394a; transform: translateY(-1px); }
+    .bm-count {
+      position: absolute; top: -5px; right: -5px; min-width: 21px; height: 21px;
+      display: grid; place-items: center; padding: 0 5px; border-radius: 12px;
+      border: 2px solid #1c1e26; background: #c0392b; color: #fff;
+      font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .bm-menu {
+      position: absolute; right: 0; bottom: calc(100% + 10px); top: auto;
+      display: flex; flex-direction: column; width: min(360px, var(--bm-menu-max-width, 360px));
+      max-width: calc(100vw - 24px);
+      max-height: var(--bm-menu-max-height, calc(100dvh - 32px)); overflow: hidden; color: #e9eaf0;
+      background: #1c1e26; border: 1px solid #34363f; border-radius: 14px;
+      box-shadow: 0 12px 36px rgba(0,0,0,.5); font-size: 13px; line-height: 1.35;
+      opacity: 1; transform: translateY(0) scale(1); transform-origin: bottom right;
+      transition: opacity .16s ease, transform .16s ease, visibility .16s;
+    }
+    .bm-panel[data-placement="below"] .bm-menu { top: calc(100% + 10px); bottom: auto; transform-origin: top right; }
+    .bm-panel[data-align="left"] .bm-menu { left: 0; right: auto; transform-origin: top left; }
+    .bm-panel[data-align="left"][data-placement="above"] .bm-menu { transform-origin: bottom left; }
+    .bm-panel[data-collapsed="1"] .bm-menu {
+      visibility: hidden; opacity: 0; pointer-events: none; transform: translateY(6px) scale(.98);
+    }
+    .bm-panel[data-placement="below"][data-collapsed="1"] .bm-menu { transform: translateY(-6px) scale(.98); }
     .bm-head {
       display: flex; align-items: center; gap: 8px; padding: 8px 10px;
-      background: #23252f; cursor: move; border-bottom: 1px solid #34363f;
+      min-height: 42px; flex: 0 0 auto; background: #23252f;
+      cursor: move; border-bottom: 1px solid #34363f;
     }
     .bm-title { font-weight: 600; font-size: 13px; flex: 1; }
-    .bm-count {
-      min-width: 26px; text-align: center; padding: 1px 6px; border-radius: 10px;
-      background: #3a3d4a; font-variant-numeric: tabular-nums;
-    }
     .bm-icon { all: unset; cursor: pointer; padding: 0 6px; border-radius: 6px; font-size: 14px; color: #b9bcc7; }
     .bm-icon:hover { background: #34363f; color: #fff; }
-    .bm-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-    .bm-panel[data-collapsed="1"] .bm-body { display: none; }
+    .bm-body { min-height: 0; padding: 10px; display: flex; flex-direction: column; gap: 8px; overflow: auto; overscroll-behavior: contain; }
     .bm-status { color: #c9ccd6; min-height: 2.2em; }
     .bm-actions { display: flex; gap: 6px; }
     .bm-btn {
-      all: unset; cursor: pointer; text-align: center; padding: 7px 10px; border-radius: 8px;
+      all: unset; min-width: 0; cursor: pointer; text-align: center; padding: 7px 10px; border-radius: 8px;
       background: #3a3d4a; color: #f2f3f7; font-size: 13px; flex: 1;
     }
     .bm-btn:hover { background: #464a5a; }
@@ -61,12 +85,12 @@
     }
     .bm-field select { cursor: pointer; }
     .bm-range { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
-    .bm-range input { margin-top: 0; }
+    .bm-range input { flex: 1; min-width: 0; margin-top: 0; }
     .bm-check { display: flex; gap: 7px; align-items: flex-start; margin-top: 8px; color: #c9ccd6; cursor: pointer; }
     .bm-check input { all: revert; margin-top: 2px; }
     .bm-stats { color: #9fa3b0; font-variant-numeric: tabular-nums; }
     .bm-log {
-      max-height: 190px; overflow: auto; background: #15161c; border: 1px solid #2c2e37;
+      max-height: 160px; overflow: auto; background: #15161c; border: 1px solid #2c2e37;
       border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 3px;
       user-select: text;
     }
@@ -89,11 +113,15 @@
   `;
 
   const TEMPLATE = `
-    <div class="bm-panel" data-role="panel">
+    <div class="bm-panel" data-role="panel" data-collapsed="1">
+      <button class="bm-launch" data-role="collapse" title="Открыть меню блокировщика" aria-label="Открыть меню блокировщика" aria-expanded="false">
+        <span aria-hidden="true">🚫</span>
+        <span class="bm-count" data-role="count" title="Сколько человек видно в открытом списке">0</span>
+      </button>
+      <div class="bm-menu" data-role="menu">
       <div class="bm-head" data-role="head">
         <span class="bm-title">🚫 Блокировщик мразей</span>
-        <span class="bm-count" data-role="count" title="Сколько человек видно в открытом списке">0</span>
-        <button class="bm-icon" data-role="collapse" title="Свернуть / развернуть">▾</button>
+        <button class="bm-icon" data-role="close" title="Свернуть меню" aria-label="Свернуть меню">✕</button>
       </div>
       <div class="bm-body">
         <div class="bm-status" data-role="status">Нажмите «↻», когда откроете окно реакций.</div>
@@ -151,6 +179,7 @@
           <button class="bm-btn bm-small" data-role="reset" title="Забыть, кого уже блокировали">Сбросить историю</button>
         </div>
       </div>
+      </div>
     </div>
   `;
 
@@ -199,7 +228,7 @@
       (document.body || document.documentElement).appendChild(host);
     }
 
-    els = { panel: byRole('panel'), head: byRole('head'), count: byRole('count'), collapse: byRole('collapse') };
+    els = { panel: byRole('panel'), head: byRole('head'), menu: byRole('menu'), count: byRole('count'), collapse: byRole('collapse'), close: byRole('close') };
     for (const name of ['status', 'run', 'stop', 'rescan', 'stats', 'log', 'copy', 'clear', 'reset', 'names', 'namesCount', 'tabInfo']) {
       els[name] = byRole(name);
     }
@@ -208,12 +237,19 @@
   }
 
   function wire() {
+    const setCollapsed = (collapsed, persist = true) => {
+      els.panel.setAttribute('data-collapsed', collapsed ? '1' : '0');
+      els.collapse.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+      els.collapse.title = collapsed ? 'Открыть меню блокировщика' : 'Свернуть меню';
+      els.collapse.setAttribute('aria-label', els.collapse.title);
+      if (!collapsed) requestAnimationFrame(keepMenuInViewport);
+      if (persist) U.storageSet('bm_panel_collapsed', collapsed);
+    };
     els.collapse.addEventListener('click', () => {
-      const collapsed = els.panel.getAttribute('data-collapsed') === '1';
-      els.panel.setAttribute('data-collapsed', collapsed ? '0' : '1');
-      els.collapse.textContent = collapsed ? '▾' : '▸';
-      U.storageSet('bm_panel_collapsed', !collapsed);
+      setCollapsed(els.panel.getAttribute('data-collapsed') === '0');
     });
+    els.close.addEventListener('click', () => setCollapsed(true));
+    els.panel.setCollapsed = setCollapsed;
 
     els.run.addEventListener('click', () => {
       start();
@@ -370,7 +406,7 @@
     if (!head || !panel) return;
 
     head.addEventListener('pointerdown', (event) => {
-      if (event.target.closest('[data-role="collapse"]')) return;
+      if (event.target.closest('[data-role="close"]')) return;
       const rect = panel.getBoundingClientRect();
       dragState = { x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
       if (head.setPointerCapture) {
@@ -385,12 +421,13 @@
 
     head.addEventListener('pointermove', (event) => {
       if (!dragState) return;
-      const left = Math.max(0, Math.min(window.innerWidth - 80, dragState.left + event.clientX - dragState.x));
-      const top = Math.max(0, Math.min(window.innerHeight - 40, dragState.top + event.clientY - dragState.y));
+      const left = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, dragState.left + event.clientX - dragState.x));
+      const top = Math.max(8, Math.min(window.innerHeight - panel.offsetHeight - 8, dragState.top + event.clientY - dragState.y));
       panel.style.left = `${left}px`;
       panel.style.top = `${top}px`;
       panel.style.right = 'auto';
       panel.style.bottom = 'auto';
+      keepMenuInViewport();
     });
 
     const finish = async () => {
@@ -398,6 +435,7 @@
       dragState = null;
       const rect = panel.getBoundingClientRect();
       await U.storageSet(U.KEYS.panelPos, { left: Math.round(rect.left), top: Math.round(rect.top) });
+      keepMenuInViewport();
     };
     head.addEventListener('pointerup', finish);
     head.addEventListener('pointercancel', finish);
@@ -640,20 +678,42 @@
   async function restorePosition() {
     const pos = await U.storageGet(U.KEYS.panelPos, null);
     if (!pos || !Number.isFinite(pos.left) || !Number.isFinite(pos.top)) return;
-    els.panel.style.left = `${pos.left}px`;
-    els.panel.style.top = `${pos.top}px`;
+    const left = Math.max(8, Math.min(window.innerWidth - els.panel.offsetWidth - 8, pos.left));
+    const top = Math.max(8, Math.min(window.innerHeight - els.panel.offsetHeight - 8, pos.top));
+    els.panel.style.left = `${left}px`;
+    els.panel.style.top = `${top}px`;
     els.panel.style.right = 'auto';
     els.panel.style.bottom = 'auto';
+  }
 
-    const rect = els.panel.getBoundingClientRect();
-    const outside =
-      rect.right > window.innerWidth || rect.bottom > window.innerHeight || rect.left < 0 || rect.top < 0;
-    if (outside) {
-      els.panel.style.left = '';
-      els.panel.style.top = '';
-      els.panel.style.right = '16px';
-      els.panel.style.bottom = '16px';
+  function keepMenuInViewport() {
+    if (!els.panel || !els.menu || els.panel.getAttribute('data-collapsed') === '1') return;
+    const panelRect = els.panel.getBoundingClientRect();
+    const viewportPadding = 12;
+    const above = Math.max(0, panelRect.top - viewportPadding);
+    const below = Math.max(0, window.innerHeight - panelRect.bottom - viewportPadding);
+    const menuHeight = els.menu.offsetHeight;
+    const placeBelow = menuHeight > above && below > above;
+    const available = placeBelow ? below : above;
+    const menuWidth = els.menu.offsetWidth;
+    const leftSpace = Math.max(0, panelRect.right - viewportPadding);
+    const rightSpace = Math.max(0, window.innerWidth - panelRect.left - viewportPadding);
+    const alignLeft = rightSpace >= leftSpace;
+    const horizontalSpace = Math.min(menuWidth || 360, alignLeft ? rightSpace : leftSpace);
+    els.panel.setAttribute('data-placement', placeBelow ? 'below' : 'above');
+    els.panel.setAttribute('data-align', alignLeft ? 'left' : 'right');
+    els.menu.style.setProperty('--bm-menu-max-height', `${available}px`);
+    els.menu.style.setProperty('--bm-menu-max-width', `${horizontalSpace}px`);
+  }
+
+  function handleViewportResize() {
+    if (els.panel.style.left && els.panel.style.top) {
+      const left = Math.max(8, Math.min(window.innerWidth - els.panel.offsetWidth - 8, parseFloat(els.panel.style.left)));
+      const top = Math.max(8, Math.min(window.innerHeight - els.panel.offsetHeight - 8, parseFloat(els.panel.style.top)));
+      els.panel.style.left = `${left}px`;
+      els.panel.style.top = `${top}px`;
     }
+    keepMenuInViewport();
   }
 
   function installTestHooks() {
@@ -695,11 +755,9 @@
     applySettingsToForm();
     await restorePosition();
 
-    const collapsed = await U.storageGet('bm_panel_collapsed', false);
-    if (collapsed) {
-      els.panel.setAttribute('data-collapsed', '1');
-      els.collapse.textContent = '▸';
-    }
+    const collapsed = await U.storageGet('bm_panel_collapsed', true);
+    els.panel.setCollapsed(collapsed, false);
+    window.addEventListener('resize', handleViewportResize);
 
     scan();
 
