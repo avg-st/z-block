@@ -139,6 +139,14 @@
     const successBeforeText = successBefore
       ? U.cleanText(`${successBefore.getAttribute('aria-label') || ''} ${successBefore.textContent || ''}`)
       : '';
+    const successTextBefore = Fb.blockSuccessTextSnapshot();
+
+    const findFreshSuccessText = () => {
+      const before = new Set(successTextBefore.map((item) => item.text));
+      return Fb.blockSuccessTextSnapshot().find((item) =>
+        !before.has(item.text) && U.namesMatch(expectedName, item.name) !== false
+      ) || null;
+    };
 
     U.realClick(confirm);
 
@@ -171,6 +179,14 @@
       return { status: STATUS.OK, message: `заблокирован: «${successName}»` };
     }
 
+    // Резерв: Facebook может показать нужную фразу без доступного контейнера
+    // модалки. Сверяем новое сообщение с текстом, который был до клика.
+    const textSuccess = findFreshSuccessText();
+    if (textSuccess) {
+      ctx.info(`окно успеха: «${textSuccess.name}» — блокировка подтверждена`);
+      return { status: STATUS.OK, message: `заблокирован: «${textSuccess.name}»` };
+    }
+
     // success-диалог не появился — проверим, исчез ли confirm-диалог.
     const gone = await U.waitGone(dialog, 8000);
     if (!gone) {
@@ -187,6 +203,11 @@
         if (ctx.closeSuccessDialog !== false) await Fb.closeBlockSuccessDialog(late);
         ctx.info(`окно успеха: «${lateName}» — блокировка подтверждена`);
         return { status: STATUS.OK, message: `заблокирован: «${lateName}»` };
+      }
+      const delayedTextSuccess = findFreshSuccessText();
+      if (delayedTextSuccess) {
+        ctx.info(`окно успеха: «${delayedTextSuccess.name}» — блокировка подтверждена`);
+        return { status: STATUS.OK, message: `заблокирован: «${delayedTextSuccess.name}»` };
       }
       await Fb.cancelDialog(dialog);
       return {

@@ -676,6 +676,22 @@
   }
 
   /**
+   * Запасной снимок сообщений успеха. У Facebook текст иногда виден на экране,
+   * но находится вне доступного для поиска контейнера модалки.
+   */
+  function blockSuccessTextSnapshot() {
+    const text = U.cleanText((document.body && (document.body.innerText || document.body.textContent)) || '');
+    const out = [];
+    const re = /(?:вы заблокировали|you blocked)\s+(.{1,120}?)(?=\s*(?:другие профили|other profiles)|[.!?]|$)/gi;
+    let match;
+    while ((match = re.exec(text))) {
+      const name = U.cleanText(match[1]).replace(/^[«"'”]+|[»"'”]+$/g, '').trim();
+      if (name) out.push({ text: U.cleanText(match[0]), name });
+    }
+    return out;
+  }
+
+  /**
    * Ждём именно появление/обновление фразы об успешной блокировке.
    * MutationObserver реагирует на DOM-изменение сразу, без частого полного
    * опроса тяжёлой страницы Facebook.
@@ -857,6 +873,7 @@
     cancelDialog,
     isBlockSuccessDialog,
     findBlockSuccessDialog,
+    blockSuccessTextSnapshot,
     waitForBlockSuccessDialog,
     successDialogTargetName,
     closeBlockSuccessDialog,

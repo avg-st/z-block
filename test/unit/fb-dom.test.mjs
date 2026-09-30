@@ -89,6 +89,13 @@ describe('fb-dom.js — список лайкнувших (реальная ра
     assert.equal(BM.fb.countProfileLinks(dialog), 3);
   });
 
+  it('blockSuccessTextSnapshot находит успех по видимому тексту без семантической модалки', () => {
+    document.body.innerHTML = '<section><span>Вы заблокировали Наталии Корниловой</span><p>Другие профили Наталии Корниловой не будут заблокированы.</p></section>';
+    const messages = BM.fb.blockSuccessTextSnapshot();
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0].name, 'Наталии Корниловой');
+  });
+
   it('rowTriggers находит кнопку «…» в строке', () => {
     const dialog = document.querySelector('div[role="dialog"]');
     const [target] = BM.fb.collectRows(dialog);
