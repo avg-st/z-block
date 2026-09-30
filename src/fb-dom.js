@@ -651,27 +651,12 @@
    * (aria-hidden) — имя всё равно сверяется вызывающим кодом.
    */
   function findBlockSuccessDialog() {
-    const findInLayer = (includeHidden) => {
-      const acceptable = (el) =>
-        !!el && !isOurNode(el) && U.isVisible(el) && (includeHidden || !U.isInAriaHidden(el));
-
-      // Предпочитаем сам диалог/модалку: поиск по тексту может вернуть
-      // вложенный span без кнопки «Закрыть».
-      const dialogs = [...document.querySelectorAll(
-        '[role="alertdialog"], [role="dialog"], [aria-modal="true"]'
-      )].filter((el) => acceptable(el) && isBlockSuccessDialog(el));
-      if (dialogs.length) return freshestCandidate(dialogs);
-
-      const labeled = [...document.querySelectorAll('[aria-label]')].filter((el) => {
-        return acceptable(el) && U.RE.blockSuccessAny.test(el.getAttribute('aria-label') || '');
-      });
-      if (labeled.length) return freshestCandidate(labeled);
-
-      const node = findSuccessTextNode(includeHidden);
-      return node ? closestSuccessContainer(node) : null;
-    };
-
-    return findInLayer(false) || findInLayer(true);
+    // Сопоставляем все способы обнаружения вместе: Facebook может оставить
+    // старую role=alertdialog и вставить более новое окно без ARIA-ролей.
+    // Берём последний контейнер в DOM независимо от способа его нахождения.
+    const visibleOnly = collectSuccessCandidates(false);
+    if (visibleOnly.length) return freshestCandidate(visibleOnly);
+    return freshestCandidate(collectSuccessCandidates(true));
   }
 
   /** Ищем узел, в тексте которого есть «Вы заблокировали …». */
