@@ -36,6 +36,9 @@
         if (event.message) U.log.info('служебная вкладка:', event.message);
       },
     });
+    // Успешный ответ немедленно закрывает служебную вкладку в background.js;
+    // ей не нужно ждать, пока исчезнет success-модалка.
+    ctx.closeSuccessDialog = false;
     ctx.dryRun = !!settings.dryRun;
     const result = await Eng.blockOnProfilePage(
       { expectedKey: message.expectedKey, expectedName: message.expectedName },

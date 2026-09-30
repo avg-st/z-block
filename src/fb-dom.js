@@ -659,6 +659,57 @@
     return freshestCandidate(collectSuccessCandidates(true));
   }
 
+  /**
+   * Ждём именно появление/обновление фразы об успешной блокировке.
+   * MutationObserver реагирует на DOM-изменение сразу, без частого полного
+   * опроса тяжёлой страницы Facebook.
+   */
+  function waitForBlockSuccessDialog(options) {
+    const opts = options || {};
+    const isFresh = typeof opts.isFresh === 'function' ? opts.isFresh : () => true;
+    const timeout = Number.isFinite(opts.timeout) ? opts.timeout : 5000;
+    const find = () => {
+      const preferred = opts.preferred;
+      if (preferred && isBlockSuccessDialog(preferred) && isFresh(preferred)) return preferred;
+      const found = findBlockSuccessDialog();
+      return found && isFresh(found) ? found : null;
+    };
+
+    const immediate = find();
+    if (immediate) return Promise.resolve(immediate);
+    if (typeof MutationObserver !== 'function' || !document.body) {
+      return U.waitFor(find, { timeout, interval: 80 });
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const observer = new MutationObserver(() => {
+        const found = find();
+        if (found) finish(found);
+      });
+      const timer = setTimeout(() => finish(null), timeout);
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        observer.disconnect();
+        clearTimeout(timer);
+        resolve(value);
+      };
+
+      observer.observe(document.body, {
+        childList: true,
+        characterData: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['aria-label', 'aria-modal', 'role', 'aria-hidden'],
+      });
+      // Перепроверяем после подписки, чтобы не пропустить изменение между
+      // первичной проверкой и запуском observer.
+      const found = find();
+      if (found) finish(found);
+    });
+  }
+
   /** Ищем узел, в тексте которого есть «Вы заблокировали …». */
   function findSuccessTextNode(includeHidden) {
     const hiddenOk = !!includeHidden;
@@ -767,8 +818,11 @@
     } else {
       U.dispatchKey(container, 'Escape', 'Escape', 27);
     }
-    const gone = await U.waitGone(container, 5000);
-    return !!gone;
+    if (await U.waitGone(container, 900)) return true;
+    // Если кнопка не сработала или окно анимируется дольше обычного, пробуем
+    // Escape и ещё коротко ждём. Не держим прогон на длинном таймауте.
+    U.dispatchKey(container, 'Escape', 'Escape', 27);
+    return !!(await U.waitGone(container, 900));
   }
 
   BM.fb = {
@@ -787,6 +841,7 @@
     cancelDialog,
     isBlockSuccessDialog,
     findBlockSuccessDialog,
+    waitForBlockSuccessDialog,
     successDialogTargetName,
     closeBlockSuccessDialog,
     profileLinks,

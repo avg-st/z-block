@@ -142,31 +142,25 @@
 
     U.realClick(confirm);
 
-    // Facebook может как закрыть confirm-диалог, так и заменить его на
-    // окно успеха «Вы заблокировали X…» — в том числе перерисовав САМ
-    // confirm-диалог (aria-label остаётся «Заблокировать…», содержимое
-    // меняется на успех). Ждём именно НОВОЕ окно успеха или превращение
-    // текущего окна; если ничего нет — считаем успехом исчезновение диалога.
-    const success = await U.waitFor(() => {
-      if (dialog.isConnected && U.RE.blockSuccessAny.test(U.cleanText(dialog.textContent || ''))) {
-        return dialog;
-      }
-      const found = Fb.findBlockSuccessDialog();
-      if (!found) return null;
-      if (found !== successBefore) return found;
-      // FB переиспользует DOM-узел окна, а имя в сообщении может склоняться
-      // («Людмилы Куляк» вместо «Людмила Куляк»). Считаем результат новым,
-      // если после клика действительно изменился текст окна.
-      const currentText = U.cleanText(`${found.getAttribute('aria-label') || ''} ${found.textContent || ''}`);
-      return currentText !== successBeforeText ? found : null;
-    }, { timeout: 15000, interval: 120 });
+    // Реагируем наблюдателем на фразу «Вы заблокировали …»/«You blocked …».
+    // Facebook может переиспользовать тот же DOM-узел и склонить имя, поэтому
+    // для старого окна проверяем изменение текста, а не точное совпадение имени.
+    const success = await Fb.waitForBlockSuccessDialog({
+      preferred: dialog,
+      timeout: 5000,
+      isFresh: (found) => {
+        if (found !== successBefore) return true;
+        const currentText = U.cleanText(`${found.getAttribute('aria-label') || ''} ${found.textContent || ''}`);
+        return currentText !== successBeforeText;
+      },
+    });
 
     if (success) {
       const successName = Fb.successDialogTargetName(success) || shown;
       const verified = U.namesMatch(expectedName, successName);
       // Закрываем окно успеха: иначе модалка перекроет список и следующие
       // строки будет невозможно нажать.
-      await Fb.closeBlockSuccessDialog(success);
+      if (ctx.closeSuccessDialog !== false) await Fb.closeBlockSuccessDialog(success);
       // Имя до клика уже сверено в окне «Заблокировать X?», поэтому окно
       // успеха считаем подтверждением. Несовпадение имени — только в лог.
       if (verified === false) {
@@ -190,7 +184,7 @@
       const lateReused = !!late && late === successBefore && lateText !== successBeforeText;
       if (lateFresh || lateReused) {
         const lateName = Fb.successDialogTargetName(late) || shown;
-        await Fb.closeBlockSuccessDialog(late);
+        if (ctx.closeSuccessDialog !== false) await Fb.closeBlockSuccessDialog(late);
         ctx.info(`окно успеха: «${lateName}» — блокировка подтверждена`);
         return { status: STATUS.OK, message: `заблокирован: «${lateName}»` };
       }
