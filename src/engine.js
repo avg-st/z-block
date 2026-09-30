@@ -136,6 +136,9 @@
     // Снимок уже открытых окон успеха (от прошлых блокировок), чтобы не спутать
     // старое окно с новым.
     const successBefore = Fb.findBlockSuccessDialog();
+    const successBeforeText = successBefore
+      ? U.cleanText(`${successBefore.getAttribute('aria-label') || ''} ${successBefore.textContent || ''}`)
+      : '';
 
     U.realClick(confirm);
 
@@ -151,11 +154,11 @@
       const found = Fb.findBlockSuccessDialog();
       if (!found) return null;
       if (found !== successBefore) return found;
-      // Тот же элемент, что и до клика: FB мог переиспользовать окно успеха,
-      // просто заменив содержимое. Принимаем его, только если имя совпало
-      // с ожидаемым, — иначе это действительно «зависшее» старое окно.
-      const name = Fb.successDialogTargetName(found);
-      return U.namesMatch(expectedName, name) === true ? found : null;
+      // FB переиспользует DOM-узел окна, а имя в сообщении может склоняться
+      // («Людмилы Куляк» вместо «Людмила Куляк»). Считаем результат новым,
+      // если после клика действительно изменился текст окна.
+      const currentText = U.cleanText(`${found.getAttribute('aria-label') || ''} ${found.textContent || ''}`);
+      return currentText !== successBeforeText ? found : null;
     }, { timeout: 15000, interval: 120 });
 
     if (success) {
@@ -181,10 +184,10 @@
       // подтверждения при этом остаётся в DOM «под» ним и никуда не исчезает).
       const late = Fb.findBlockSuccessDialog();
       const lateFresh = !!late && late !== successBefore;
-      const lateReused =
-        !!late &&
-        late === successBefore &&
-        U.namesMatch(expectedName, Fb.successDialogTargetName(late)) === true;
+      const lateText = late
+        ? U.cleanText(`${late.getAttribute('aria-label') || ''} ${late.textContent || ''}`)
+        : '';
+      const lateReused = !!late && late === successBefore && lateText !== successBeforeText;
       if (lateFresh || lateReused) {
         const lateName = Fb.successDialogTargetName(late) || shown;
         await Fb.closeBlockSuccessDialog(late);

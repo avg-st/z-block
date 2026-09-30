@@ -651,9 +651,27 @@
    * (aria-hidden) — имя всё равно сверяется вызывающим кодом.
    */
   function findBlockSuccessDialog() {
-    const visibleOnly = collectSuccessCandidates(false);
-    if (visibleOnly.length) return freshestCandidate(visibleOnly);
-    return freshestCandidate(collectSuccessCandidates(true));
+    const findInLayer = (includeHidden) => {
+      const acceptable = (el) =>
+        !!el && !isOurNode(el) && U.isVisible(el) && (includeHidden || !U.isInAriaHidden(el));
+
+      // Предпочитаем сам диалог/модалку: поиск по тексту может вернуть
+      // вложенный span без кнопки «Закрыть».
+      const dialogs = [...document.querySelectorAll(
+        '[role="alertdialog"], [role="dialog"], [aria-modal="true"]'
+      )].filter((el) => acceptable(el) && isBlockSuccessDialog(el));
+      if (dialogs.length) return freshestCandidate(dialogs);
+
+      const labeled = [...document.querySelectorAll('[aria-label]')].filter((el) => {
+        return acceptable(el) && U.RE.blockSuccessAny.test(el.getAttribute('aria-label') || '');
+      });
+      if (labeled.length) return freshestCandidate(labeled);
+
+      const node = findSuccessTextNode(includeHidden);
+      return node ? closestSuccessContainer(node) : null;
+    };
+
+    return findInLayer(false) || findInLayer(true);
   }
 
   /** Ищем узел, в тексте которого есть «Вы заблокировали …». */
@@ -738,8 +756,22 @@
    */
   async function closeBlockSuccessDialog(el) {
     if (!el || !el.isConnected) return true;
+    // На случай если поиск по тексту вернул вложенный узел — поднимаемся
+    // к ближайшему семантическому окну успеха, где находятся его контролы.
+    let container = el;
+    for (let cur = el; cur && cur !== document.body; cur = cur.parentElement) {
+      if (isOurNode(cur)) break;
+      if (
+        cur.matches &&
+        cur.matches('[role="alertdialog"], [role="dialog"], [aria-modal="true"]') &&
+        isBlockSuccessDialog(cur)
+      ) {
+        container = cur;
+        break;
+      }
+    }
     // Кнопки, лежащие внутри окна подтверждения, не трогаем — это не «Закрыть».
-    const buttons = [...el.querySelectorAll('[role="button"], button')].filter(
+    const buttons = [...container.querySelectorAll('[role="button"], button')].filter(
       (b) => !b.closest('[role="dialog"][aria-label^="Заблокировать"]')
     );
     const closeBtn =
@@ -748,9 +780,9 @@
     if (closeBtn) {
       U.realClick(closeBtn);
     } else {
-      U.dispatchKey(el, 'Escape', 'Escape', 27);
+      U.dispatchKey(container, 'Escape', 'Escape', 27);
     }
-    const gone = await U.waitGone(el, 5000);
+    const gone = await U.waitGone(container, 5000);
     return !!gone;
   }
 
