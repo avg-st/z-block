@@ -120,8 +120,6 @@
     }
     .bm-hint { color: #858da0; font-size: 11px; line-height:1.45; margin: 6px 0 9px; }
     .bm-section-title { display:flex; align-items:center; justify-content:space-between; gap:8px; color:#aeb5c5; font-size:11px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; }
-    .bm-history { padding: 9px 10px; border:1px solid #34313b; border-radius:9px; background:#211e25; color:#e6c7ca; }
-    .bm-history:hover { background:#30242a; }
     @media (max-width: 380px) { .bm-menu { width: calc(100vw - 24px); } .bm-actions { grid-template-columns:minmax(0,1fr) auto; } .bm-actions [data-role="stop"] { grid-column:2; grid-row:1; } }
   `;
 
@@ -173,15 +171,10 @@
           <summary>Журнал работы</summary>
           <div class="bm-foot">
             <button class="bm-btn bm-small" data-role="copy">Скопировать журнал</button>
-            <button class="bm-btn bm-small" data-role="clear">Очистить журнал</button>
+            <button class="bm-btn bm-small" data-role="clear">Очистить журнал и историю</button>
           </div>
           <div class="bm-log" data-role="log"></div>
-          <div class="bm-hint">Очистка журнала удаляет только сообщения на этой странице и не меняет список уже заблокированных.</div>
-        </details>
-        <details class="bm-settings">
-          <summary>История и данные</summary>
-          <button class="bm-btn bm-history" data-role="reset" title="Очистить локальные отметки о ранее заблокированных аккаунтах">Сбросить историю блокировок</button>
-          <div class="bm-hint">Это позволит обработать аккаунты повторно. Люди не будут разблокированы в Facebook.</div>
+          <div class="bm-hint">Удалит сообщения журнала и локальные отметки о блокировках. Это позволит обработать аккаунты повторно, но не разблокирует их в Facebook.</div>
         </details>
       </div>
       </div>
@@ -227,7 +220,7 @@
     }
 
     els = { panel: byRole('panel'), head: byRole('head'), menu: byRole('menu'), count: byRole('count'), collapse: byRole('collapse'), close: byRole('close') };
-    for (const name of ['status', 'run', 'stop', 'rescan', 'stats', 'log', 'copy', 'clear', 'reset', 'names', 'namesCount', 'tabInfo']) {
+    for (const name of ['status', 'run', 'stop', 'rescan', 'stats', 'log', 'copy', 'clear', 'names', 'namesCount', 'tabInfo']) {
       els[name] = byRole(name);
     }
     for (const name of FORM_KEYS) els[name] = byRole(name);
@@ -258,12 +251,12 @@
       if (!running) setStatus(`В списке найдено: ${lastRows.length}`);
     });
     els.copy.addEventListener('click', copyLog);
-    els.clear.addEventListener('click', () => logClear());
-    els.reset.addEventListener('click', async () => {
-      if (!window.confirm('Очистить локальную историю блокировок? Это позволит расширению обрабатывать эти аккаунты повторно, но не разблокирует их в Facebook.')) return;
+    els.clear.addEventListener('click', async () => {
+      if (!window.confirm('Очистить журнал и локальную историю блокировок? Это позволит расширению обрабатывать аккаунты повторно, но не разблокирует их в Facebook.')) return;
+      logClear();
       await U.historyClear();
       if (ctx) ctx.knownBlocked.clear();
-      pushLog({ status: 'info', message: 'история блокировок сброшена' });
+      setStatus('Журнал и история блокировок очищены');
     });
 
     for (const key of FORM_KEYS) {
