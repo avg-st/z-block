@@ -1,0 +1,16 @@
+{
+  "name": "bm-block-likers",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Расширение для Chrome/Edge: блокировать всех, кто лайкнул комментарий в Facebook",
+  "scripts": {
+    "icons": "node tools/make-icons.mjs",
+    "test": "node --test test/unit/*.test.mjs",
+    "test:e2e": "node test/e2e/e2e-list.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^29.1.1",
+    "puppeteer-core": "^23.11.1"
+  }
+}

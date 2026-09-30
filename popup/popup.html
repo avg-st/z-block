@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <title>Блокировщик мразей</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <h1>🚫 Блокировщик мразей</h1>
+
+    <ol class="steps">
+      <li>Откройте в Facebook список тех, кто лайкнул комментарий (клик по «Нравится» / «Все реакции»).</li>
+      <li>Внизу справа появится панель расширения со счётчиком найденных людей.</li>
+      <li>Проверьте настройки (первый прогон лучше делать с галочкой «Тестовый прогон»).</li>
+      <li>Нажмите «Блокировать всех» и не закрывайте вкладку до конца прогона.</li>
+    </ol>
+
+    <div class="card">
+      <div class="row">
+        <span>Заблокировано через расширение:</span>
+        <b id="blockedCount">0</b>
+      </div>
+      <div class="row">
+        <span>Записей в истории:</span>
+        <b id="historyCount">0</b>
+      </div>
+      <div class="muted" id="updated"></div>
+    </div>
+
+    <div class="actions">
+      <button id="clear" class="danger">Сбросить историю</button>
+      <button id="closeTabs">Закрыть служебные вкладки</button>
+    </div>
+
+    <div class="muted" id="note"></div>
+    <ul class="recent" id="recent"></ul>
+    <div class="muted small">
+      Панель появляется только на facebook.com. Если её нет — обновите страницу.
+    </div>
+
+    <script src="../src/util.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
